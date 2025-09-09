@@ -1,20 +1,19 @@
 /*
-Считаем общее количество покупателей
-из таблицы customers
+Считаем общее количество покупателей из таблицы customers
 */
 
 select COUNT(*) as customers_count
 from customers;
 
 /*
- Считаем 10 лучших продавцов
- по суммарной выручке
+ Считаем 10 лучших продавцов по суммарной выручке
 */
 
 select e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
 	   -- учитываем случаи, когда middle_initial имеет значение NULL 
 	   count(*) as operations,
 	   floor(sum(p.price * s.quantity)) as income
+	   -- отбрасываем дробную часть
 from sales s
 join products p using (product_id)
 join employees e on s.sales_person_id = e.employee_id
@@ -23,10 +22,7 @@ order by income desc
 limit 10;
 
 /*
-Выводим информацию о продавцах,
-чья выручка за сделку меньше
-средней выручки за сделку
-по всем продавцам
+Выводим информацию о продавцах, чья выручка за сделку меньше средней выручки за сделку по всем продавцам
 */
 
 with average_incomes as (
@@ -41,6 +37,7 @@ with average_incomes as (
 )
 select seller,
        floor(average_income) as average_income
+	   -- отбрасываем дробную часть
 from average_incomes
 where average_income < (select avg(average_income) from average_incomes)
 order by average_income;
