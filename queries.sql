@@ -41,3 +41,22 @@ select seller,
 from average_incomes
 where average_income < (select avg(average_income) from average_incomes)
 order by average_income;
+
+/*
+Выводим информацию о выручке по дням недели.
+*/
+
+select 
+    e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
+    to_char(s.sale_date, 'FMday') as day_of_week,
+    floor(sum(p.price * s.quantity)) as income
+from employees e
+join sales s on s.sales_person_id = e.employee_id
+join products p on s.product_id = p.product_id
+group by
+    e.first_name, e.middle_initial, e.last_name,
+    to_char(s.sale_date, 'FMday'),
+    extract(isodow from s.sale_date)
+order by 
+    extract(isodow from s.sale_date),  -- monday = 1, sunday = 7
+    seller;
