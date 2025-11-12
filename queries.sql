@@ -60,3 +60,23 @@ group by
 order by 
     extract(isodow from s.sale_date),  -- monday = 1, sunday = 7
     seller;
+
+/*
+Выводим количество покупателей в разных
+возрастных группах: 16-25, 26-40 и 40+.
+*/
+
+with customers_age as (
+  select distinct on (customer_id) customer_id, age
+  from customers
+)
+select
+  case
+    when age between 16 and 25 then '16-25'
+    when age between 26 and 40 then '26-40'
+    when age > 40 then '40+'
+  end as age_category,
+  count(*) as age_count
+from customers_age
+group by age_category
+order by age_category;
