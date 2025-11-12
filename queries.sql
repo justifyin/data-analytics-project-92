@@ -94,3 +94,28 @@ from sales
 join products using (product_id)
 group by selling_month
 order by selling_month;
+
+/*
+ Выводим покупателей, первая покупка которых
+ была в ходе проведения акций
+ (акционные товары отпускали со стоимостью равной 0).
+*/
+
+with first_purchase_discounted as (
+  select distinct on (customer_id)
+    customer_id,
+    sale_date,
+    sales_person_id
+  from sales s
+  join products p using (product_id)
+  where price = 0
+  order by customer_id, sale_date
+)
+select
+  c.first_name || ' ' || coalesce(c.middle_initial || ' ', '') || c.last_name as customer,
+  fpd.sale_date,
+  e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller
+from first_purchase_discounted as fpd
+join customers c using (customer_id)
+join employees e on e.employee_id = fpd.sales_person_id
+order by fpd.customer_id;
