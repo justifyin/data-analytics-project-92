@@ -48,6 +48,7 @@ order by average_income;
 
 select 
     e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
+	-- учитываем случаи, когда middle_initial имеет значение NULL
     to_char(s.sale_date, 'FMday') as day_of_week,
     floor(sum(p.price * s.quantity)) as income
 from employees e
@@ -113,8 +114,10 @@ with first_purchase_discounted as (
 )
 select
   c.first_name || ' ' || coalesce(c.middle_initial || ' ', '') || c.last_name as customer,
+  -- учитываем случаи, когда middle_initial имеет значение NULL
   fpd.sale_date,
   e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller
+  -- учитываем случаи, когда middle_initial имеет значение NULL
 from first_purchase_discounted as fpd
 join customers c using (customer_id)
 join employees e on e.employee_id = fpd.sales_person_id
