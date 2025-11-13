@@ -127,7 +127,7 @@ customers_names AS (
 employees_names AS (
     SELECT
         employee_id,
-        first_name || ' '|| last_name AS seller
+        first_name || ' ' || last_name AS seller
     FROM employees
 )
 
