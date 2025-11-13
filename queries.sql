@@ -118,7 +118,7 @@ WITH first_purchase_discounted AS (
 )
 
 SELECT
-    c.first_name || ' ' || c.last_name AS customer, -- noqa: ST06
+    c.first_name || ' ' || c.last_name AS customer,
     fpd.sale_date,
     e.first_name || ' ' || e.last_name AS seller
 FROM first_purchase_discounted AS fpd
@@ -126,4 +126,4 @@ INNER JOIN customers AS c
     ON fpd.customer_id = c.customer_id
 INNER JOIN employees AS e
     ON fpd.sales_person_id = e.employee_id
-ORDER BY fpd.customer_id;
+ORDER BY fpd.customer_id;  -- noqa: ST06
