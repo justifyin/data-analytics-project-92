@@ -7,8 +7,8 @@ SELECT
     e.first_name || ' ' || e.last_name AS seller,
     COUNT(*) AS operations,
     FLOOR(SUM(p.price * s.quantity)) AS income  -- отбрасываем дробную часть
-FROM salesdb.sales AS s
-JOIN salesdb.products AS p
+FROM sales AS s
+JOIN products AS p
     ON s.product_id = p.product_id
 JOIN employees AS e
     ON s.sales_person_id = e.employee_id
