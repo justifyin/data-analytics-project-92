@@ -113,10 +113,10 @@ with first_purchase_discounted as (
   order by customer_id, sale_date
 )
 select
-  c.first_name || ' ' || coalesce(c.middle_initial || ' ', '') || c.last_name as customer,
+  c.first_name || ' ' || c.last_name as customer,
   -- учитываем случаи, когда middle_initial имеет значение NULL
   fpd.sale_date,
-  e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller
+  e.first_name || ' ' || e.last_name as seller
   -- учитываем случаи, когда middle_initial имеет значение NULL
 from first_purchase_discounted as fpd
 join customers c using (customer_id)
