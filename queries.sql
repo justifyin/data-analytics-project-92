@@ -8,8 +8,10 @@ SELECT
     COUNT(*) AS operations,
     FLOOR(SUM(p.price * s.quantity)) AS income  -- отбрасываем дробную часть
 FROM sales AS s
-JOIN products AS p ON s.product_id = p.product_id
-JOIN employees AS e ON s.sales_person_id = e.employee_id
+JOIN products AS p
+    ON s.product_id = p.product_id
+JOIN employees AS e
+    ON s.sales_person_id = e.employee_id
 GROUP BY e.first_name, e.last_name
 ORDER BY income DESC
 LIMIT 10;
@@ -21,8 +23,10 @@ WITH average_incomes AS (
         e.first_name || ' ' || e.last_name AS seller,
         AVG(p.price * s.quantity) AS average_income
     FROM employees AS e
-    JOIN sales AS s ON s.sales_person_id = e.employee_id
-    JOIN products AS p ON s.product_id = p.product_id
+    JOIN sales AS s
+        ON s.sales_person_id = e.employee_id
+    JOIN products AS p
+        ON s.product_id = p.product_id
     GROUP BY e.first_name, e.middle_initial, e.last_name
 )
 
@@ -39,8 +43,10 @@ SELECT
     TO_CHAR(s.sale_date, 'FMday') AS day_of_week,
     FLOOR(SUM(p.price * s.quantity)) AS income
 FROM employees AS e
-JOIN sales AS s ON s.sales_person_id = e.employee_id
-JOIN products AS p ON s.product_id = p.product_id
+JOIN sales AS s
+    ON s.sales_person_id = e.employee_id
+JOIN products AS p
+    ON s.product_id = p.product_id
 GROUP BY
     e.first_name, e.middle_initial, e.last_name,
     TO_CHAR(s.sale_date, 'FMday'),
@@ -81,7 +87,8 @@ SELECT
     COUNT(DISTINCT s.customer_id) AS total_customers,
     FLOOR(SUM(p.price * s.quantity)) AS income
 FROM sales AS s
-JOIN products AS p ON s.product_id = p.product_id
+JOIN products AS p
+    ON s.product_id = p.product_id
 GROUP BY selling_month
 ORDER BY selling_month;
 
@@ -97,7 +104,8 @@ WITH first_purchase_discounted AS (
         s.sale_date,
         s.sales_person_id
     FROM sales AS s
-    JOIN products AS p ON s.product_id = p.product_id
+    JOIN products AS p
+        ON s.product_id = p.product_id
     WHERE p.price = 0
     ORDER BY s.customer_id, s.sale_date
 )
@@ -106,6 +114,8 @@ SELECT
     fpd.sale_date,
     e.first_name || ' ' || e.last_name AS seller
 FROM first_purchase_discounted AS fpd
-JOIN customers AS c ON c.customer_id = fpd.customer_id
-JOIN employees AS e ON e.employee_id = fpd.sales_person_id
+JOIN customers AS c
+    ON c.customer_id = fpd.customer_id
+JOIN employees AS e
+    ON e.employee_id = fpd.sales_person_id
 ORDER BY fpd.customer_id;
