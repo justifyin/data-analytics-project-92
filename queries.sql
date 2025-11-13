@@ -24,17 +24,18 @@ limit 10;
 */
 
 with average_incomes as (
-    select e.first_name || ' ' || e.last_name as seller,
-		   coalesce(avg(p.price * s.quantity), 0) as average_income
-		   -- учитываем случаи, когда продавец не совершил ни одной сделки
+    select
+        e.first_name || ' ' || e.last_name as seller,
+        avg(p.price * s.quantity) as average_income
     from employees e
-    left join sales s on s.sales_person_id = e.employee_id
-    left join products p on s.product_id = p.product_id
+    join sales s on s.sales_person_id = e.employee_id
+    join products p on s.product_id = p.product_id
     group by e.first_name, e.middle_initial, e.last_name
 )
-select seller,
-       floor(average_income) as average_income
-	   -- отбрасываем дробную часть
+select
+    seller,
+    floor(average_income) as average_income
+	-- отбрасываем дробную часть
 from average_incomes
 where average_income < (select avg(average_income) from average_incomes)
 order by average_income;
