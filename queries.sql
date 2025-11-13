@@ -34,10 +34,13 @@ WITH average_incomes AS (
 )
 
 SELECT
-    seller,
+    ai.seller,
     FLOOR(average_income) AS average_income  -- отбрасываем дробную часть
-FROM average_incomes
-WHERE average_income < (SELECT AVG(average_income) FROM average_incomes)
+FROM average_incomes AS ai
+WHERE ai.average_income < (
+    SELECT AVG(ai2.average_income)
+    FROM average_incomes AS ai2
+)
 ORDER BY average_income;
 
 /* Выводим информацию о выручке по дням недели. */
