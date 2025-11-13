@@ -1,121 +1,112 @@
-/*
-Считаем общее количество покупателей из таблицы customers
-*/
+/* Считаем общее количество покупателей из таблицы customers */
+SELECT
+    COUNT(*) AS customers_count
+FROM customers;
 
-select count(*) as customers_count
-from customers;
+/* Считаем 10 лучших продавцов по суммарной выручке */
+SELECT
+    e.first_name || ' ' || e.last_name AS seller,
+    COUNT(*) AS operations,
+    FLOOR(SUM(p.price * s.quantity)) AS income  -- отбрасываем дробную часть
+FROM sales AS s
+JOIN products AS p ON s.product_id = p.product_id
+JOIN employees AS e ON s.sales_person_id = e.employee_id
+GROUP BY e.first_name, e.last_name
+ORDER BY income DESC
+LIMIT 10;
 
-/*
- Считаем 10 лучших продавцов по суммарной выручке
-*/
 
-select e.first_name || ' ' || e.last_name as seller,
-	   count(*) as operations,
-	   floor(sum(p.price * s.quantity)) as income
-	   -- отбрасываем дробную часть
-from sales s
-join products p using (product_id)
-join employees e on s.sales_person_id = e.employee_id
-group by seller
-order by income desc
-limit 10;
-/*
-Выводим информацию о продавцах, чья выручка за сделку меньше средней выручки за сделку по всем продавцам
-*/
-
-with average_incomes as (
-    select
-        e.first_name || ' ' || e.last_name as seller,
-        avg(p.price * s.quantity) as average_income
-    from employees e
-    join sales s on s.sales_person_id = e.employee_id
-    join products p on s.product_id = p.product_id
-    group by e.first_name, e.middle_initial, e.last_name
+/* Выводим информацию о продавцах, чья выручка за сделку меньше средней выручки по всем продавцам */
+WITH average_incomes AS (
+    SELECT
+        e.first_name || ' ' || e.last_name AS seller,
+        AVG(p.price * s.quantity) AS average_income
+    FROM employees AS e
+    JOIN sales AS s ON s.sales_person_id = e.employee_id
+    JOIN products AS p ON s.product_id = p.product_id
+    GROUP BY e.first_name, e.middle_initial, e.last_name
 )
-select
+
+SELECT
     seller,
-    floor(average_income) as average_income
-	-- отбрасываем дробную часть
-from average_incomes
-where average_income < (select avg(average_income) from average_incomes)
-order by average_income;
+    FLOOR(average_income) AS average_income  -- отбрасываем дробную часть
+FROM average_incomes
+WHERE average_income < (SELECT AVG(average_income) FROM average_incomes)
+ORDER BY average_income;
 
-/*
-Выводим информацию о выручке по дням недели.
-*/
-
-select 
-    e.first_name || ' ' || e.last_name as seller,
-    to_char(s.sale_date, 'FMday') as day_of_week,
-    floor(sum(p.price * s.quantity)) as income
-from employees e
-join sales s on s.sales_person_id = e.employee_id
-join products p on s.product_id = p.product_id
-group by
+/* Выводим информацию о выручке по дням недели. */
+SELECT
+    e.first_name || ' ' || e.last_name AS seller,
+    TO_CHAR(s.sale_date, 'FMday') AS day_of_week,
+    FLOOR(SUM(p.price * s.quantity)) AS income
+FROM employees AS e
+JOIN sales AS s ON s.sales_person_id = e.employee_id
+JOIN products AS p ON s.product_id = p.product_id
+GROUP BY
     e.first_name, e.middle_initial, e.last_name,
-    to_char(s.sale_date, 'FMday'),
-    extract(isodow from s.sale_date)
-order by 
-    extract(isodow from s.sale_date),  -- monday = 1, sunday = 7
+    TO_CHAR(s.sale_date, 'FMday'),
+    EXTRACT(ISODOW FROM s.sale_date)
+ORDER BY
+    EXTRACT(ISODOW FROM s.sale_date),  -- monday = 1, sunday = 7
     seller;
 
 /*
 Выводим количество покупателей в разных
 возрастных группах: 16-25, 26-40 и 40+.
 */
-
-with customers_age as (
-  select distinct on (customer_id) customer_id, age
-  from customers
+WITH customers_age AS (
+    SELECT DISTINCT ON (c.customer_id)
+        c.customer_id,
+        c.age
+    FROM customers AS c
 )
-select
-  case
-    when age between 16 and 25 then '16-25'
-    when age between 26 and 40 then '26-40'
-    when age > 40 then '40+'
-  end as age_category,
-  count(*) as age_count
-from customers_age
-group by age_category
-order by age_category;
+
+SELECT
+    CASE
+        WHEN c.age BETWEEN 16 AND 25 THEN '16-25'
+        WHEN c.age BETWEEN 26 AND 40 THEN '26-40'
+        WHEN c.age > 40 THEN '40+'
+    END AS age_category,
+    COUNT(*) AS age_count
+FROM customers_age AS c
+GROUP BY age_category
+ORDER BY age_category;
+
 
 /*
 Выводим данные по количеству уникальных
 покупателей и выручке, которую они принесли.
 */
-
-select
-  to_char(sale_date, 'YYYY-MM') as selling_month,
-  count(distinct customer_id) as total_customers,
-  floor(sum(price * quantity)) as income
-from sales
-join products using (product_id)
-group by selling_month
-order by selling_month;
+SELECT
+    TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+    COUNT(DISTINCT s.customer_id) AS total_customers,
+    FLOOR(SUM(p.price * s.quantity)) AS income
+FROM sales AS s
+JOIN products AS p ON s.product_id = p.product_id
+GROUP BY selling_month
+ORDER BY selling_month;
 
 /*
- Выводим покупателей, первая покупка которых
- была в ходе проведения акций
- (акционные товары отпускали со стоимостью равной 0).
+Выводим покупателей, первая покупка которых
+была в ходе проведения акций
+(акционные товары отпускали со стоимостью равной 0).
 */
 
-with first_purchase_discounted as (
-  select distinct on (customer_id)
-    customer_id,
-    sale_date,
-    sales_person_id
-  from sales s
-  join products p using (product_id)
-  where price = 0
-  order by customer_id, sale_date
+WITH first_purchase_discounted AS (
+    SELECT DISTINCT ON (s.customer_id)
+        s.customer_id,
+        s.sale_date,
+        s.sales_person_id
+    FROM sales AS s
+    JOIN products AS p ON s.product_id = p.product_id
+    WHERE p.price = 0
+    ORDER BY s.customer_id, s.sale_date
 )
-select
-  c.first_name || ' ' || c.last_name as customer,
-  -- учитываем случаи, когда middle_initial имеет значение NULL
-  fpd.sale_date,
-  e.first_name || ' ' || e.last_name as seller
-  -- учитываем случаи, когда middle_initial имеет значение NULL
-from first_purchase_discounted as fpd
-join customers c using (customer_id)
-join employees e on e.employee_id = fpd.sales_person_id
-order by fpd.customer_id;
+SELECT
+    c.first_name || ' ' || c.last_name AS customer,
+    fpd.sale_date,
+    e.first_name || ' ' || e.last_name AS seller
+FROM first_purchase_discounted AS fpd
+JOIN customers AS c ON c.customer_id = fpd.customer_id
+JOIN employees AS e ON e.employee_id = fpd.sales_person_id
+ORDER BY fpd.customer_id;
