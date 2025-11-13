@@ -115,15 +115,29 @@ WITH first_purchase_discounted AS (
         ON s.product_id = p.product_id
     WHERE p.price = 0
     ORDER BY s.customer_id, s.sale_date
+),
+
+customers_names AS (
+    SELECT
+        customer_id,
+        first_name || ' ' || last_name AS customer
+    FROM customers
+),
+
+employees_names AS (
+    SELECT
+        employee_id,
+        first_name || ' '|| last_name AS seller
+    FROM employees
 )
 
 SELECT
-    c.first_name || ' ' || c.last_name AS customer,
+    c.customer,
     fpd.sale_date,
-    e.first_name || ' ' || e.last_name AS seller
+    e.seller
 FROM first_purchase_discounted AS fpd
-INNER JOIN customers AS c
+INNER JOIN customers_names AS c
     ON fpd.customer_id = c.customer_id
-INNER JOIN employees AS e
+INNER JOIN employees_names AS e
     ON fpd.sales_person_id = e.employee_id
-ORDER BY fpd.customer_id;  -- noqa: ST06
+ORDER BY fpd.customer_id;
