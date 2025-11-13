@@ -17,7 +17,10 @@ ORDER BY income DESC
 LIMIT 10;
 
 
-/* Выводим информацию о продавцах, чья выручка за сделку меньше средней выручки по всем продавцам */
+/*
+Выводим информацию о продавцах, чья выручка за сделку
+меньше средней выручки по всем продавцам
+*/
 WITH average_incomes AS (
     SELECT
         e.first_name || ' ' || e.last_name AS seller,
@@ -109,6 +112,7 @@ WITH first_purchase_discounted AS (
     WHERE p.price = 0
     ORDER BY s.customer_id, s.sale_date
 )
+
 SELECT
     c.first_name || ' ' || c.last_name AS customer,
     fpd.sale_date,
