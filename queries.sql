@@ -9,8 +9,7 @@ from customers;
  Считаем 10 лучших продавцов по суммарной выручке
 */
 
-select e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
-	   -- учитываем случаи, когда middle_initial имеет значение NULL 
+select e.first_name || ' ' || e.last_name as seller,
 	   count(*) as operations,
 	   floor(sum(p.price * s.quantity)) as income
 	   -- отбрасываем дробную часть
@@ -20,7 +19,6 @@ join employees e on s.sales_person_id = e.employee_id
 group by seller
 order by income desc
 limit 10;
-
 /*
 Выводим информацию о продавцах, чья выручка за сделку меньше средней выручки за сделку по всем продавцам
 */
