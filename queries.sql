@@ -8,7 +8,7 @@ SELECT
     COUNT(*) AS operations,
     FLOOR(SUM(p.price * s.quantity)) AS income  -- отбрасываем дробную часть
 FROM sales AS s
-JOIN products AS p
+JOIN salesdb.products AS p
     ON s.product_id = p.product_id
 JOIN employees AS e
     ON s.sales_person_id = e.employee_id
