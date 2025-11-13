@@ -24,8 +24,7 @@ limit 10;
 */
 
 with average_incomes as (
-    select e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
-           -- учитываем случаи, когда middle_initial имеет значение NULL
+    select e.first_name || ' ' || e.last_name as seller,
 		   coalesce(avg(p.price * s.quantity), 0) as average_income
 		   -- учитываем случаи, когда продавец не совершил ни одной сделки
     from employees e
@@ -45,8 +44,7 @@ order by average_income;
 */
 
 select 
-    e.first_name || ' ' || coalesce(e.middle_initial || ' ', '') || e.last_name as seller,
-	-- учитываем случаи, когда middle_initial имеет значение NULL
+    e.first_name || ' ' || e.last_name as seller,
     to_char(s.sale_date, 'FMday') as day_of_week,
     floor(sum(p.price * s.quantity)) as income
 from employees e
