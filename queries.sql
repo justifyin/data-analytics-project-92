@@ -51,7 +51,7 @@ SELECT
     FLOOR(SUM(p.price * s.quantity)) AS income
 FROM employees AS e
 INNER JOIN sales AS s
-    ON s.sales_person_id = e.employee_id
+    ON e.employee_id = s.sales_person_id
 INNER JOIN products AS p
     ON s.product_id = p.product_id
 GROUP BY
@@ -118,12 +118,12 @@ WITH first_purchase_discounted AS (
 )
 
 SELECT
-    c.first_name || ' ' || c.last_name AS customer,
+    c.first_name || ' ' || c.last_name AS customer, -- noqa: ST06
     fpd.sale_date,
     e.first_name || ' ' || e.last_name AS seller
 FROM first_purchase_discounted AS fpd
 INNER JOIN customers AS c
     ON fpd.customer_id = c.customer_id
 INNER JOIN employees AS e
-    ON e.employee_id = fpd.sales_person_id
+    ON fpd.sales_person_id = e.employee_id
 ORDER BY fpd.customer_id;
