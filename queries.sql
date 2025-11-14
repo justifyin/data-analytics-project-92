@@ -30,9 +30,11 @@ FROM (
         AVG(p.price * s.quantity) AS avg_income,
         AVG(AVG(p.price * s.quantity)) OVER () AS global_avg
     FROM
-        employees e
-        JOIN sales s ON e.employee_id = s.sales_person_id
-        JOIN products p ON s.product_id = p.product_id
+        employees AS e
+        INNER JOIN sales s
+            ON e.employee_id = s.sales_person_id
+        INNER JOIN products p
+            ON s.product_id = p.product_id
     GROUP BY
         e.employee_id,
         e.first_name,
