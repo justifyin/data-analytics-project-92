@@ -67,24 +67,16 @@ ORDER BY
 Выводим количество покупателей в разных
 возрастных группах: 16-25, 26-40 и 40+.
 */
-WITH customers_age AS (
-    SELECT DISTINCT ON (c.customer_id)
-        c.customer_id,
-        c.age
-    FROM customers AS c
-)
-
 SELECT
     CASE
-        WHEN c.age BETWEEN 16 AND 25 THEN '16-25'
-        WHEN c.age BETWEEN 26 AND 40 THEN '26-40'
-        WHEN c.age > 40 THEN '40+'
+        WHEN age BETWEEN 16 AND 25 THEN '16-25'
+        WHEN age BETWEEN 26 AND 40 THEN '26-40'
+        ELSE '40+'
     END AS age_category,
     COUNT(*) AS age_count
-FROM customers_age AS c
+FROM customers
 GROUP BY age_category
 ORDER BY age_category;
-
 
 /*
 Выводим данные по количеству уникальных
