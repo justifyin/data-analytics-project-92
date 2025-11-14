@@ -38,7 +38,8 @@ FROM (
     GROUP BY
         e.employee_id,
         e.first_name,
-        e.last_name) AS t
+        e.last_name
+) AS t
 WHERE
     avg_income < global_avg
 ORDER BY
