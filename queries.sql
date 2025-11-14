@@ -1,12 +1,12 @@
-/* Считаем общее количество покупателей из таблицы customers */
+/* Общее количество покупателей */
 SELECT COUNT(*) AS customers_count
 FROM customers;
 
-/* Считаем 10 лучших продавцов по суммарной выручке */
+/* 10 лучших продавцов по суммарной выручке */
 SELECT
     e.first_name || ' ' || e.last_name AS seller,
     COUNT(*) AS operations,
-    FLOOR(SUM(p.price * s.quantity)) AS income  -- отбрасываем дробную часть
+    FLOOR(SUM(p.price * s.quantity)) AS income  -- сумма продаж без дробной части
 FROM sales AS s
 INNER JOIN products AS p
     ON s.product_id = p.product_id
@@ -17,10 +17,7 @@ ORDER BY income DESC
 LIMIT 10;
 
 
-/*
-Выводим информацию о продавцах, чья выручка за сделку
-меньше средней выручки по всем продавцам
-*/
+/* Продавцы с выручкой ниже средней */
 SELECT
     seller,
     FLOOR(avg_income) AS average_income
@@ -28,7 +25,7 @@ FROM (
     SELECT
         e.first_name || ' ' || e.last_name AS seller,
         AVG(p.price * s.quantity) AS avg_income,
-        AVG(AVG(p.price * s.quantity)) OVER () AS global_avg
+        AVG(AVG(p.price * s.quantity)) OVER () AS global_avg -- среднее по всем продавцам
     FROM
         employees AS e
     INNER JOIN sales AS s
@@ -45,7 +42,7 @@ WHERE
 ORDER BY
     avg_income;
 
-/* Выводим информацию о выручке по дням недели. */
+/* Выручка по дням недели для каждого продавца */
 SELECT
     e.first_name || ' ' || e.last_name AS seller,
     TO_CHAR(s.sale_date, 'FMday') AS day_of_week,
@@ -58,15 +55,12 @@ INNER JOIN products AS p
 GROUP BY
     e.first_name, e.middle_initial, e.last_name,
     TO_CHAR(s.sale_date, 'FMday'),
-    EXTRACT(ISODOW FROM s.sale_date)
+    EXTRACT(ISODOW FROM s.sale_date) -- день недели для правильного порядка
 ORDER BY
-    EXTRACT(ISODOW FROM s.sale_date),  -- monday = 1, sunday = 7
+    EXTRACT(ISODOW FROM s.sale_date),
     seller;
 
-/*
-Выводим количество покупателей в разных
-возрастных группах: 16-25, 26-40 и 40+.
-*/
+/* Количество покупателей по возрастным категориям */
 SELECT
     CASE
         WHEN age BETWEEN 16 AND 25 THEN '16-25'
@@ -78,10 +72,7 @@ FROM customers
 GROUP BY age_category
 ORDER BY age_category;
 
-/*
-Выводим данные по количеству уникальных
-покупателей и выручке, которую они принесли.
-*/
+/* Количество уникальных покупателей и выручка по месяцам */
 SELECT
     TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
     COUNT(DISTINCT s.customer_id) AS total_customers,
@@ -92,11 +83,7 @@ INNER JOIN products AS p
 GROUP BY selling_month
 ORDER BY selling_month;
 
-/*
-Выводим покупателей, первая покупка которых
-была в ходе проведения акций
-(акционные товары отпускали со стоимостью равной 0).
-*/
+/* Покупатели, чья первая покупка была акционной (цена = 0) */
 WITH ranked_sales AS (
     SELECT
         s.customer_id,
@@ -108,7 +95,7 @@ WITH ranked_sales AS (
         ROW_NUMBER() OVER (
             PARTITION BY s.customer_id
             ORDER BY s.sale_date
-        ) AS rn
+        ) AS rn -- нумерация покупок для каждого клиента
     FROM sales AS s
     INNER JOIN customers AS c
         ON s.customer_id = c.customer_id
@@ -124,6 +111,6 @@ FROM ranked_sales AS rs
 INNER JOIN products AS p
     ON rs.product_id = p.product_id
 WHERE
-    rs.rn = 1
-    AND p.price = 0
+    rs.rn = 1  -- только первая покупка
+    AND p.price = 0  -- только акционные товары
 ORDER BY rs.customer_id;
