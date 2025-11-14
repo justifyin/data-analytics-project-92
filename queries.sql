@@ -6,7 +6,9 @@ FROM customers;
 SELECT
     e.first_name || ' ' || e.last_name AS seller,
     COUNT(*) AS operations,
-    FLOOR(SUM(p.price * s.quantity)) AS income  -- сумма продаж без дробной части
+    FLOOR(
+        SUM(p.price * s.quantity)
+    ) AS income  -- сумма продаж без дробной части
 FROM sales AS s
 INNER JOIN products AS p
     ON s.product_id = p.product_id
@@ -25,7 +27,9 @@ FROM (
     SELECT
         e.first_name || ' ' || e.last_name AS seller,
         AVG(p.price * s.quantity) AS avg_income,
-        AVG(AVG(p.price * s.quantity)) OVER () AS global_avg -- среднее по всем продавцам
+        AVG(
+            AVG(p.price * s.quantity)
+        ) OVER () AS global_avg -- среднее по всем продавцам
     FROM
         employees AS e
     INNER JOIN sales AS s
