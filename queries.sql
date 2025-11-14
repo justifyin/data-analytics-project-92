@@ -21,28 +21,26 @@ LIMIT 10;
 Выводим информацию о продавцах, чья выручка за сделку
 меньше средней выручки по всем продавцам
 */
-WITH average_incomes AS (
+SELECT
+    seller,
+    FLOOR(avg_income) AS average_income
+FROM (
     SELECT
         e.first_name || ' ' || e.last_name AS seller,
-        AVG(p.price * s.quantity) AS average_income
-    FROM employees AS e
-    INNER JOIN sales AS s
-        ON e.employee_id = s.sales_person_id
-    INNER JOIN products AS p
-        ON s.product_id = p.product_id
-    GROUP BY e.first_name, e.middle_initial, e.last_name
-)
-
-SELECT
-    ai.seller,
-    FLOOR(average_income) AS average_income  -- отбрасываем дробную часть
-FROM average_incomes AS ai
+        AVG(p.price * s.quantity) AS avg_income,
+        AVG(AVG(p.price * s.quantity)) OVER () AS global_avg
+    FROM
+        employees e
+        JOIN sales s ON e.employee_id = s.sales_person_id
+        JOIN products p ON s.product_id = p.product_id
+    GROUP BY
+        e.employee_id,
+        e.first_name,
+        e.last_name) AS t
 WHERE
-    ai.average_income < (
-        SELECT AVG(ai2.average_income)
-        FROM average_incomes AS ai2
-    )
-ORDER BY average_income;
+    avg_income < global_avg
+ORDER BY
+    avg_income;
 
 /* Выводим информацию о выручке по дням недели. */
 SELECT
