@@ -97,40 +97,33 @@ ORDER BY selling_month;
 была в ходе проведения акций
 (акционные товары отпускали со стоимостью равной 0).
 */
-
-WITH first_purchase_discounted AS (
-    SELECT DISTINCT ON (s.customer_id)
+WITH ranked_sales AS (
+    SELECT
         s.customer_id,
+        s.product_id,
         s.sale_date,
-        s.sales_person_id
+        s.sales_person_id,
+        c.first_name || ' ' || c.last_name AS customer,
+        e.first_name || ' ' || e.last_name AS seller,
+        ROW_NUMBER() OVER (
+            PARTITION BY s.customer_id
+            ORDER BY s.sale_date
+        ) AS rn
     FROM sales AS s
-    INNER JOIN products AS p
-        ON s.product_id = p.product_id
-    WHERE p.price = 0
-    ORDER BY s.customer_id, s.sale_date
-),
-
-customers_names AS (
-    SELECT
-        customer_id,
-        first_name || ' ' || last_name AS customer
-    FROM customers
-),
-
-employees_names AS (
-    SELECT
-        employee_id,
-        first_name || ' ' || last_name AS seller
-    FROM employees
+    INNER JOIN customers AS c
+        ON s.customer_id = c.customer_id
+    INNER JOIN employees AS e
+        ON s.sales_person_id = e.employee_id
 )
 
 SELECT
-    c.customer,
-    fpd.sale_date,
-    e.seller
-FROM first_purchase_discounted AS fpd
-INNER JOIN customers_names AS c
-    ON fpd.customer_id = c.customer_id
-INNER JOIN employees_names AS e
-    ON fpd.sales_person_id = e.employee_id
-ORDER BY fpd.customer_id;
+    rs.customer,
+    rs.sale_date,
+    rs.seller
+FROM ranked_sales AS rs
+INNER JOIN products AS p
+    ON rs.product_id = p.product_id
+WHERE
+    rs.rn = 1
+    AND p.price = 0
+ORDER BY rs.customer_id;
