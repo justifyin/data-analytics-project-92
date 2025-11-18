@@ -105,6 +105,9 @@ WITH ranked_sales AS (
         ON s.customer_id = c.customer_id
     INNER JOIN employees AS e
         ON s.sales_person_id = e.employee_id
+    INNER JOIN products p
+    	ON s.product_id = p.product_id
+    WHERE p.price = 0   -- только акционные товары
 )
 
 SELECT
@@ -112,9 +115,6 @@ SELECT
     rs.sale_date,
     rs.seller
 FROM ranked_sales AS rs
-INNER JOIN products AS p
-    ON rs.product_id = p.product_id
 WHERE
     rs.rn = 1  -- только первая покупка
-    AND p.price = 0  -- только акционные товары
 ORDER BY rs.customer_id;
